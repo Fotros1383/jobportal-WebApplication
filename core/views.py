@@ -7,6 +7,8 @@ from django.contrib.auth import authenticate
 from .utils import genetate_jwt
 from rest_framework.permissions import IsAuthenticated
 from datetime import timezone, timedelta, datetime
+from rest_framework.request import Request
+from .models import Resume
 
 EXPIRE_MINUTE_LOGIN = 10
 EXPIRE_MINUTE_COOKIES = 5
@@ -28,17 +30,47 @@ def login(request):
     if user:
         token = genetate_jwt(user,EXPIRE_MINUTE_LOGIN)
         # set cookies
-        expire = datetime.now(timezone.utc) + timedelta(minutes=EXPIRE_MINUTE_COOKIES)   
+        expire_time = datetime.now(timezone.utc) + timedelta(minutes=EXPIRE_MINUTE_COOKIES)   
         response = Response(status=status.HTTP_200_OK)
         response.set_cookie(
             key='user_token',
             value=token,
-            expires=expire
+            expires=expire_time
         )
         
         return response  # can send a message for fronend
     else:
         return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def upload_resume(request:Request):
+    if request.user.role != 'JOB_SEEKER':
+        return Response(status=status.HTTP_403_FORBIDDEN)
+    if 'resume' not in request.FILES:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    resume = Resume.objects.create(
+        user=request.user,
+        file=request.FILES['resume']
+    )
+    return Response(status=status.HTTP_201_CREATED)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_resumes(request:Request):
+    if request.user.role != 'EMPLOYER':
+        return Response(status=status.HTTP_403_FORBIDDEN)
+    resumes = Resume.objects.all()
+    data = [
+        {
+            'user': resume.user.username,
+            'file': resume.file.url,
+            # 'file': request.build_absolute_uri(resume.file.url),
+            'uploaded at': resume.uploaded_at
+        }
+        for resume in resumes
+    ]
+    return Response(data=data)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -49,7 +81,7 @@ def logout(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def profile(request):
+def profile(request:Request):
     serializer = CurrentUserSerializer(request.user)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
