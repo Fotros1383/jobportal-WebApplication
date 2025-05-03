@@ -7,20 +7,28 @@ from django.contrib.auth import authenticate
 from .utils import genetate_jwt
 from rest_framework.permissions import IsAuthenticated
 from datetime import timezone, timedelta, datetime
+from rest_framework.permissions import AllowAny
+from django.http import HttpRequest,HttpResponse
 
 EXPIRE_MINUTE_LOGIN = 10
 EXPIRE_MINUTE_COOKIES = 5
 
-@api_view(['POST'])
-def register(request):
+@api_view(['POST','GET'])
+@permission_classes([AllowAny]) 
+def register(request:HttpRequest):
+    if(request.method=='GET'):
+        return HttpResponse('you are in register page')
     serializer = RegisterSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
         return Response(status=status.HTTP_201_CREATED)   # can send a message as a json
     return Response(serializer.errors, status=status.HTTP_404_NOT_FOUND)
 
-@api_view(['POST'])
+@api_view(['POST','GET'])
+@permission_classes([AllowAny]) 
 def login(request):
+    if(request.method=='GET'):
+        return HttpResponse('you are in login page')
     username = request.data.get('username')
     password = request.data.get('password')
 
@@ -40,16 +48,20 @@ def login(request):
     else:
         return Response(status=status.HTTP_401_UNAUTHORIZED)
 
-@api_view(['POST'])
+@api_view(['POST','GET'])
 @permission_classes([IsAuthenticated])
 def logout(request):
+    if(request.method=='GET'):
+        return HttpResponse('you are in logout page, sad to see you go')
     response = Response(status=status.HTTP_200_OK)  # can send a message as a json
     response.delete_cookie('user_token')
     return response
 
-@api_view(['GET'])
+@api_view(['POST','GET'])
 @permission_classes([IsAuthenticated])
 def profile(request):
+    if(request.method=='GET'):
+        return HttpResponse('you are in profile page')
     serializer = CurrentUserSerializer(request.user)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
