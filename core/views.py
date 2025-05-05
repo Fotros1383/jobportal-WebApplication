@@ -17,7 +17,7 @@ EXPIRE_MINUTE_COOKIES = 5
 @permission_classes([AllowAny]) 
 def register(request:HttpRequest):
     if(request.method=='GET'):
-        return HttpResponse('you are in register page')
+        return HttpResponse('you are in register page',status=status.HTTP_200_OK)
     serializer = RegisterSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
@@ -28,7 +28,7 @@ def register(request:HttpRequest):
 @permission_classes([AllowAny]) 
 def login(request):
     if(request.method=='GET'):
-        return HttpResponse('you are in login page')
+        return HttpResponse('you are in login page',status=status.HTTP_200_OK)
     username = request.data.get('username')
     password = request.data.get('password')
 
@@ -52,7 +52,7 @@ def login(request):
 @permission_classes([IsAuthenticated])
 def logout(request):
     if(request.method=='GET'):
-        return HttpResponse('you are in logout page, sad to see you go')
+        return HttpResponse('you are in logout page, sad to see you go',status=status.HTTP_200_OK)
     response = Response(status=status.HTTP_200_OK)  # can send a message as a json
     response.delete_cookie('user_token')
     return response
