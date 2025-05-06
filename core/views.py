@@ -9,7 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from datetime import timezone, timedelta, datetime
 from rest_framework.permissions import AllowAny
 from django.http import HttpRequest,HttpResponse
-
+from django.shortcuts import render
 EXPIRE_MINUTE_LOGIN = 10
 EXPIRE_MINUTE_COOKIES = 5
 
@@ -17,7 +17,7 @@ EXPIRE_MINUTE_COOKIES = 5
 @permission_classes([AllowAny]) 
 def register(request:HttpRequest):
     if(request.method=='GET'):
-        return HttpResponse('you are in register page',status=status.HTTP_200_OK)
+       return render(request,'./register-page.html',status=200)
     serializer = RegisterSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
@@ -28,7 +28,8 @@ def register(request:HttpRequest):
 @permission_classes([AllowAny]) 
 def login(request):
     if(request.method=='GET'):
-        return HttpResponse('you are in login page',status=status.HTTP_200_OK)
+         return render(request,'./login-page.html',status=200)
+        #return HttpResponse('you are in login-page page',status=status.HTTP_200_OK)
     username = request.data.get('username')
     password = request.data.get('password')
 
