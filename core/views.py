@@ -37,12 +37,12 @@ def login(request):
     if user:
         token = genetate_jwt(user,EXPIRE_MINUTE_LOGIN)
         # set cookies
-        expire = datetime.now(timezone.utc) + timedelta(minutes=EXPIRE_MINUTE_COOKIES)   
+        expire_time = datetime.now(timezone.utc) + timedelta(minutes=EXPIRE_MINUTE_COOKIES)   
         response = Response(status=status.HTTP_200_OK)
         response.set_cookie(
             key='user_token',
             value=token,
-            expires=expire
+            expires=expire_time
         )
         
         return response  # can send a message for fronend
@@ -50,6 +50,36 @@ def login(request):
         return Response(status=status.HTTP_401_UNAUTHORIZED)
 
 @api_view(['POST','GET'])
+@permission_classes([IsAuthenticated])
+def upload_resume(request:Request):
+    if request.user.role != 'JOB_SEEKER':
+        return Response(status=status.HTTP_403_FORBIDDEN)
+    if 'resume' not in request.FILES:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    resume = Resume.objects.create(
+        user=request.user,
+        file=request.FILES['resume']
+    )
+    return Response(status=status.HTTP_201_CREATED)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_resumes(request:Request):
+    if request.user.role != 'EMPLOYER':
+        return Response(status=status.HTTP_403_FORBIDDEN)
+    resumes = Resume.objects.all()
+    data = [
+        {
+            'user': resume.user.username,
+            'file': resume.file.url,
+            # 'file': request.build_absolute_uri(resume.file.url),
+            'uploaded at': resume.uploaded_at
+        }
+        for resume in resumes
+    ]
+    return Response(data=data)
+
+@api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def logout(request):
     if(request.method=='GET'):
