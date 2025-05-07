@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JobPortal - Profile</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-color: #3498db;
+        --secondary-color: #2980b9;
+        --accent-color: #e74c3c;
+        --text-color: #333;
+        --light-color: #f9f9f9;
+        --light-gray: #eee;
+        --dark-color: #2c3e50;
+        --success-color: #2ecc71;
+        --warning-color: #f39c12;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+        padding: 0;
+        margin: 0;
+      }
+
+      .navbar {
+        background-color: var(--dark-color);
+        color: white;
+        padding: 15px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .navbar .logo {
+        font-size: 24px;
+        font-weight: 700;
+        color: white;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+      }
+
+      .navbar .logo i {
+        margin-right: 10px;
+        color: var(--primary-color);
+      }
+
+      .navbar .nav-links {
+        display: flex;
+        align-items: center;
+      }
+
+      .navbar .nav-links a {
+        color: white;
+        text-decoration: none;
+        margin-left: 20px;
+        font-weight: 500;
+        transition: all 0.3s;
+      }
+
+      .navbar .nav-links a:hover {
+        color: var(--primary-color);
+      }
+
+      .navbar .nav-links .logout-btn {
+        background-color: var(--accent-color);
+        padding: 8px 15px;
+        border-radius: 4px;
+        color: white;
+      }
+
+      .navbar .nav-links .logout-btn:hover {
+        background-color: #c0392b;
+        color: white;
+      }
+
+      .container {
+        max-width: 1000px;
+        margin: 40px auto;
+        padding: 0 20px;
+      }
+
+      .profile-card {
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+        margin-bottom: 30px;
+      }
+
+      .profile-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 30px;
+      }
+
+      .profile-avatar {
+        width: 100px;
+        height: 100px;
+        background-color: var(--primary-color);
+        border-radius: 50%;
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 40px;
+        margin-right: 25px;
+      }
+
+      .profile-info h2 {
+        font-size: 26px;
+        margin-bottom: 8px;
+        color: var(--dark-color);
+      }
+
+      .profile-info p {
+        font-size: 16px;
+        color: #666;
+        margin-bottom: 5px;
+      }
+
+      .profile-info .role-badge {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 500;
+        margin-top: 8px;
+      }
+
+      .profile-info .role-employer {
+        background-color: rgba(243, 156, 18, 0.2);
+        color: var(--warning-color);
+      }
+
+      .profile-info .role-jobseeker {
+        background-color: rgba(52, 152, 219, 0.2);
+        color: var(--primary-color);
+      }
+
+      .action-card {
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+      }
+
+      .card-title {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        color: var(--dark-color);
+        padding-bottom: 15px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        align-items: center;
+      }
+
+      .card-title i {
+        margin-right: 10px;
+        color: var(--primary-color);
+      }
+
+      .btn {
+        display: inline-block;
+        padding: 12px 24px;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        text-align: center;
+      }
+
+      .btn:hover {
+        background-color: var(--secondary-color);
+      }
+
+      .btn-lg {
+        padding: 15px 30px;
+        font-size: 18px;
+      }
+
+      .upload-container {
+        border: 2px dashed #ccc;
+        border-radius: 10px;
+        padding: 50px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-bottom: 20px;
+      }
+
+      .upload-container:hover {
+        border-color: var(--primary-color);
+        background-color: rgba(52, 152, 219, 0.05);
+      }
+
+      .upload-container.active {
+        border-color: var(--success-color);
+        background-color: rgba(46, 204, 113, 0.05);
+      }
+
+      .upload-icon {
+        font-size: 50px;
+        color: #aaa;
+        margin-bottom: 15px;
+        transition: all 0.3s;
+      }
+
+      .upload-container:hover .upload-icon,
+      .upload-container.active .upload-icon {
+        color: var(--primary-color);
+      }
+
+      .upload-container.active .upload-icon {
+        color: var(--success-color);
+      }
+
+      .upload-text {
+        font-size: 18px;
+        color: #666;
+        margin-bottom: 5px;
+      }
+
+      .upload-info {
+        font-size: 14px;
+        color: #999;
+      }
+
+      .file-details {
+        display: none;
+        margin-top: 20px;
+        text-align: left;
+        background-color: var(--light-gray);
+        padding: 15px;
+        border-radius: 8px;
+      }
+
+      .file-name {
+        font-weight: 500;
+        margin-bottom: 5px;
+        display: flex;
+        align-items: center;
+      }
+
+      .file-name i {
+        margin-right: 8px;
+        color: var(--primary-color);
+      }
+
+      .file-size {
+        font-size: 14px;
+        color: #777;
+      }
+
+      .alert {
+        padding: 15px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        display: none;
+      }
+
+      .alert-success {
+        background-color: rgba(46, 204, 113, 0.2);
+        border: 1px solid var(--success-color);
+        color: #27ae60;
+      }
+
+      .alert-danger {
+        background-color: rgba(231, 76, 60, 0.2);
+        border: 1px solid var(--accent-color);
+        color: #c0392b;
+      }
+
+      /* Responsive adjustments */
+      @media (max-width: 768px) {
+        .profile-header {
+          flex-direction: column;
+          text-align: center;
+        }
+
+        .profile-avatar {
+          margin-right: 0;
+          margin-bottom: 20px;
+        }
+
+        .navbar {
+          padding: 15px;
+        }
+
+        .navbar .logo {
+          font-size: 20px;
+        }
+
+        .navbar .nav-links a {
+          margin-left: 12px;
+          font-size: 14px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="navbar">
+      <a href="/" class="logo">
+        <i class="fas fa-briefcase"></i>
+        JobPortal
+      </a>
+      <div class="nav-links">
+        <a href="/api/profile/">Profile</a>
+        <a href="/api/logout/" class="logout-btn">Log Out</a>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="profile-card">
+        <div class="profile-header">
+          <div class="profile-avatar">
+            <i class="fas fa-user"></i>
+          </div>
+          <div class="profile-info">
+            <h2 id="user-name">Loading...</h2>
+            <p id="user-username">@username</p>
+            <p id="user-role-badge" class="role-badge">Role</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- EMPLOYER VIEW: Will be shown only for employers -->
+      <div id="employer-view" style="display: none">
+        <div class="action-card">
+          <h3 class="card-title">
+            <i class="fas fa-file-alt"></i>
+            Manage Resumes
+          </h3>
+          <p>
+            Access all the resumes submitted by job seekers on our platform.
+          </p>
+          <br />
+          <a href="/api/resumes/" class="btn btn-lg">
+            <i class="fas fa-search"></i> View All Resumes
+          </a>
+        </div>
+      </div>
+
+      <!-- JOB SEEKER VIEW: Will be shown only for job seekers -->
+      <div id="jobseeker-view" style="display: none">
+        <div class="action-card">
+          <h3 class="card-title">
+            <i class="fas fa-cloud-upload-alt"></i>
+            Upload Your Resume
+          </h3>
+
+          <div id="alert" class="alert">Upload status message</div>
+
+          <div id="drop-area" class="upload-container">
+            <i class="fas fa-cloud-upload-alt upload-icon"></i>
+            <p class="upload-text">Drag & Drop your resume here</p>
+            <p class="upload-info">or click to browse files</p>
+            <input
+              type="file"
+              id="file-input"
+              style="display: none"
+              accept=".pdf,.doc,.docx"
+            />
+          </div>
+
+          <div id="file-details" class="file-details">
+            <p class="file-name">
+              <i class="fas fa-file-pdf"></i>
+              <span id="selected-file-name">filename.pdf</span>
+            </p>
+            <p class="file-size" id="selected-file-size">Size: 1.2 MB</p>
+          </div>
+
+          <button id="upload-btn" class="btn" style="display: none">
+            <i class="fas fa-upload"></i> Upload Resume
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Fetch user profile data
+      async function fetchUserProfile() {
+        try {
+          const response = await fetch("/api/profile/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCookie("csrftoken"),
+            },
+          });
+
+          const data = await response.json();
+
+          // Update profile information
+          document.getElementById("user-username").textContent =
+            "@" + data.username;
+
+          // Show different view based on role
+          if (data.role === "EMPLOYER") {
+            document.getElementById("user-name").textContent =
+              "Employer Account";
+            document.getElementById("user-role-badge").textContent = "Employer";
+            document.getElementById("user-role-badge").className =
+              "role-badge role-employer";
+            document.getElementById("employer-view").style.display = "block";
+          } else {
+            document.getElementById("user-name").textContent =
+              "Job Seeker Account";
+            document.getElementById("user-role-badge").textContent =
+              "Job Seeker";
+            document.getElementById("user-role-badge").className =
+              "role-badge role-jobseeker";
+            document.getElementById("jobseeker-view").style.display = "block";
+          }
+        } catch (error) {
+          console.error("Error fetching profile:", error);
+        }
+      }
+
+      // Initialize drag and drop for file upload
+      function initFileUpload() {
+        const dropArea = document.getElementById("drop-area");
+        const fileInput = document.getElementById("file-input");
+        const fileDetails = document.getElementById("file-details");
+        const fileName = document.getElementById("selected-file-name");
+        const fileSize = document.getElementById("selected-file-size");
+        const uploadBtn = document.getElementById("upload-btn");
+        const alert = document.getElementById("alert");
+
+        // Open file browser when clicking on drop area
+        dropArea.addEventListener("click", () => {
+          fileInput.click();
+        });
+
+        // Handle drag events
+        ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
+          dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+
+        ["dragenter", "dragover"].forEach((eventName) => {
+          dropArea.addEventListener(eventName, highlight, false);
+        });
+
+        ["dragleave", "drop"].forEach((eventName) => {
+          dropArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() {
+          dropArea.classList.add("active");
+        }
+
+        function unhighlight() {
+          dropArea.classList.remove("active");
+        }
+
+        // Handle dropped files
+        dropArea.addEventListener("drop", handleDrop, false);
+
+        function handleDrop(e) {
+          const dt = e.dataTransfer;
+          const files = dt.files;
+          handleFiles(files);
+        }
+
+        // Handle selected files from input
+        fileInput.addEventListener("change", function () {
+          handleFiles(this.files);
+        });
+
+        function handleFiles(files) {
+          if (files.length > 0) {
+            const file = files[0];
+
+            // Display file details
+            fileName.textContent = file.name;
+            fileSize.textContent = "Size: " + formatFileSize(file.size);
+            fileDetails.style.display = "block";
+            uploadBtn.style.display = "inline-block";
+
+            // Store file for upload
+            window.selectedFile = file;
+          }
+        }
+
+        // Format file size
+        function formatFileSize(bytes) {
+          if (bytes < 1024) return bytes + " bytes";
+          else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
+          else return (bytes / 1048576).toFixed(1) + " MB";
+        }
+
+        // Handle upload button click
+        uploadBtn.addEventListener("click", uploadFile);
+
+        async function uploadFile() {
+          if (!window.selectedFile) return;
+
+          const formData = new FormData();
+          formData.append("resume", window.selectedFile);
+
+          try {
+            const response = await fetch("/api/upload_resume/", {
+              method: "POST",
+              headers: {
+                "X-CSRFToken": getCookie("csrftoken"),
+              },
+              body: formData,
+            });
+
+            if (response.ok) {
+              // Show success message
+              alert.className = "alert alert-success";
+              alert.style.display = "block";
+              alert.textContent = "Resume uploaded successfully!";
+
+              // Reset form
+              fileDetails.style.display = "none";
+              uploadBtn.style.display = "none";
+              window.selectedFile = null;
+              fileInput.value = "";
+            } else {
+              // Show error message
+              alert.className = "alert alert-danger";
+              alert.style.display = "block";
+              alert.textContent = "Failed to upload resume. Please try again.";
+            }
+          } catch (error) {
+            console.error("Error uploading file:", error);
+            alert.className = "alert alert-danger";
+            alert.style.display = "block";
+            alert.textContent = "An error occurred. Please try again.";
+          }
+        }
+      }
+
+      // Function to get CSRF token from cookies
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+          const cookies = document.cookie.split(";");
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === name + "=") {
+              cookieValue = decodeURIComponent(
+                cookie.substring(name.length + 1)
+              );
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
+
+      // Initialize
+      document.addEventListener("DOMContentLoaded", function () {
+        fetchUserProfile();
+        initFileUpload();
+      });
+    </script>
+  </body>
+</html>

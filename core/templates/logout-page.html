@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JobPortal - Logout</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-color: #3498db;
+        --secondary-color: #2980b9;
+        --accent-color: #e74c3c;
+        --text-color: #333;
+        --light-color: #f9f9f9;
+        --dark-color: #2c3e50;
+        --success-color: #2ecc71;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      }
+
+      .container {
+        background-color: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 500px;
+        padding: 0;
+        overflow: hidden;
+        text-align: center;
+      }
+
+      .header {
+        padding: 40px 30px 20px;
+      }
+
+      .goodbye-icon {
+        font-size: 80px;
+        margin-bottom: 30px;
+        color: var(--accent-color);
+        animation: wave 2s infinite;
+      }
+
+      @keyframes wave {
+        0% {
+          transform: rotate(0deg);
+        }
+        10% {
+          transform: rotate(14deg);
+        }
+        20% {
+          transform: rotate(-8deg);
+        }
+        30% {
+          transform: rotate(14deg);
+        }
+        40% {
+          transform: rotate(-4deg);
+        }
+        50% {
+          transform: rotate(10deg);
+        }
+        60% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(0deg);
+        }
+      }
+
+      h1 {
+        font-size: 28px;
+        color: var(--dark-color);
+        margin-bottom: 15px;
+      }
+
+      p {
+        color: #666;
+        font-size: 18px;
+        line-height: 1.6;
+        margin-bottom: 30px;
+        padding: 0 20px;
+      }
+
+      .timer-container {
+        margin: 30px 0;
+      }
+
+      .timer {
+        font-size: 42px;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 10px;
+      }
+
+      .timer-text {
+        font-size: 16px;
+        color: #777;
+      }
+
+      .footer {
+        background-color: var(--light-color);
+        padding: 25px;
+        border-top: 1px solid #eee;
+      }
+
+      .btn {
+        display: inline-block;
+        padding: 12px 30px;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 30px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        margin: 0 10px;
+      }
+
+      .btn:hover {
+        background-color: var(--secondary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .btn-secondary {
+        background-color: #95a5a6;
+      }
+
+      .btn-secondary:hover {
+        background-color: #7f8c8d;
+      }
+
+      /* Animations */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .container {
+        animation: fadeIn 0.8s ease-out;
+      }
+
+      /* Responsive adjustments */
+      @media (max-width: 600px) {
+        .container {
+          border-radius: 15px;
+        }
+
+        .goodbye-icon {
+          font-size: 70px;
+        }
+
+        h1 {
+          font-size: 24px;
+        }
+
+        p {
+          font-size: 16px;
+        }
+
+        .timer {
+          font-size: 36px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <i class="fas fa-hand-wave goodbye-icon"></i>
+        <h1>We're Sad to See You Go!</h1>
+        <p>Thank you for using JobPortal. We hope to see you back soon!</p>
+
+        <div class="timer-container">
+          <div class="timer" id="countdown">10</div>
+          <div class="timer-text">Redirecting to homepage in seconds...</div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <a href="/" class="btn">Go to Homepage</a>
+        <a href="/api/login/" class="btn btn-secondary">Login Again</a>
+      </div>
+    </div>
+
+    <script>
+      // Send logout request
+      async function logoutUser() {
+        try {
+          const response = await fetch("/api/logout/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCookie("csrftoken"),
+            },
+          });
+
+          if (!response.ok) {
+            console.error("Logout failed");
+          }
+        } catch (error) {
+          console.error("Error during logout:", error);
+        }
+      }
+
+      // Countdown timer
+      let timeLeft = 10;
+      const countdownElement = document.getElementById("countdown");
+
+      function updateCountdown() {
+        countdownElement.textContent = timeLeft;
+
+        if (timeLeft === 0) {
+          window.location.href = "/";
+        } else {
+          timeLeft--;
+          setTimeout(updateCountdown, 1000);
+        }
+      }
+
+      // Function to get CSRF token from cookies
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+          const cookies = document.cookie.split(";");
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === name + "=") {
+              cookieValue = decodeURIComponent(
+                cookie.substring(name.length + 1)
+              );
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
+
+      // Initialize
+      document.addEventListener("DOMContentLoaded", function () {
+        logoutUser();
+        updateCountdown();
+      });
+    </script>
+  </body>
+</html>

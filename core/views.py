@@ -103,20 +103,23 @@ def list_resumes(request:Request):
     ]
     return Response(data=data)
 
-@api_view(['POST'])
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def logout(request):
-    if(request.method=='GET'):
-        return Response({'message': 'you are in logout page, sad to see you go'},status=status.HTTP_200_OK)
-    response = Response({'message': 'Logout succeessfull'},status=status.HTTP_200_OK)  # can send a message as a json
+    response=render(request,template_name='./logout-page.html',status=200)
     response.delete_cookie('user_token')
+        #return Response({'message': 'you are in logout page, sad to see you go'},status=status.HTTP_200_OK)
+    #response = HttpResponseResponse({'message': 'Logout succeessfull'},status=status.HTTP_200_OK)  # can send a message as a json
+    #response.delete_cookie('user_token')
     return response
 
 @api_view(['POST','GET'])
 @permission_classes([IsAuthenticated])
 def profile(request):
     if(request.method=='GET'):
+        return render(request,'./profile-page.html',status=200)
         return HttpResponse('you are in profile page',status=status.HTTP_200_OK)
+    
     serializer = CurrentUserSerializer(request.user)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
