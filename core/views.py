@@ -12,40 +12,51 @@ from datetime import timezone, timedelta, datetime
 from .models import Resume
 from .auth import login_attempts
 
-EXPIRE_MINUTE_LOGIN = 10
 EXPIRE_MINUTE_COOKIES = 5
 EXPIRE_DAY_REMEMBER_ME = 7
 EXPIRE_MINUTE_BRUTEFORCE = 5
+MAXIMUM_TRY = 5
 
 @api_view(['POST','GET'])
 @permission_classes([AllowAny]) 
 def register(request:Request):
+
     if(request.method=='GET'):
-       return render(request,'./register-page new c.html',status=200)
+       return render(request,'./register-page new c.html',status=status.HTTP_200_OK)
+    
     serializer = RegisterSerializer(data=request.data)
+    
     if serializer.is_valid():
         serializer.save()
         return Response({'message':'You registered successfully!'},status=status.HTTP_201_CREATED)   # can send a message as a json
+    
     return Response(serializer.errors, status=status.HTTP_404_NOT_FOUND)
+
+
 
 @api_view(['POST','GET'])
 @permission_classes([AllowAny]) 
 def login(request):
+
     if(request.method=='GET'):
         return render(request,'./login-page new c.html',status=status.HTTP_200_OK)
+    
     username = request.data.get('username')
     password = request.data.get('password')
     remember_me = request.data.get('remember_me', False)
     user_attempt = login_attempts.get(username)
 
-    if user_attempt and 'blocked_until' in login_attempts:
+    if user_attempt and 'blocked_until' in login_attempts[username]:
         if datetime.now(timezone.utc) < user_attempt['blocked_until']:
-            return Response({'error':'Too many request to login. Try again later'}, status=status.HTTP_429_TOO_MANY_REQUESTS)
-
+            return Response({'error':'Too many Try to login. Try again later'}, status=status.HTTP_429_TOO_MANY_REQUESTS)
+    
     user = authenticate(username=username, password=password)
     
     if user:
-        token = genetate_jwt(user,EXPIRE_MINUTE_LOGIN)
+        if username in login_attempts:
+            del login_attempts[username]
+        
+        token = genetate_jwt(user,EXPIRE_MINUTE_COOKIES)
         # set cookies
         expire_time = timedelta(days=EXPIRE_DAY_REMEMBER_ME) if remember_me else timedelta(minutes=EXPIRE_MINUTE_COOKIES)
         response = Response({'message': 'Login successfull'},status=status.HTTP_200_OK)
@@ -54,7 +65,6 @@ def login(request):
             value=token,
             expires=expire_time+datetime.now(timezone.utc)
         )
-        response.headers
     
         return response
     
@@ -64,27 +74,35 @@ def login(request):
         login_attempts[username]['count'] += 1
         login_attempts[username]['last_attemps'] = datetime.now(timezone.utc)
         
-        if login_attempts[username]['count'] >= 5:
-            login_attempts[username]['blocked_until'] = datetime.now(timezone.utc) + timedelta(minute=EXPIRE_MINUTE_BRUTEFORCE)
+        if login_attempts[username]['count'] >= MAXIMUM_TRY:
+            login_attempts[username]['blocked_until'] = datetime.now(timezone.utc) + timedelta(minutes=EXPIRE_MINUTE_BRUTEFORCE)
     
     return Response({'error':'Invalid username or password'},status=status.HTTP_401_UNAUTHORIZED)
     
+
+
 @api_view(['POST','GET'])
 @permission_classes([IsAuthenticated])
 def upload_resume(request:Request):
+
     if request.user.role != 'JOB_SEEKER':
         return Response(status=status.HTTP_403_FORBIDDEN)
+    
     if 'resume' not in request.FILES:
         return Response(status=status.HTTP_400_BAD_REQUEST)
+    
     resume = Resume.objects.create(
         user=request.user,
         file=request.FILES['resume']
     )
     return Response(status=status.HTTP_201_CREATED)
 
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_resumes(request:Request):
+
     if request.user.role not in ['EMPLOYER', 'JOB_SEEKER']:
         return Response(status=status.HTTP_403_FORBIDDEN)
         
@@ -109,13 +127,15 @@ def list_resumes(request:Request):
 
 
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def logout(request):
+
     response=render(request,template_name='./logout-page.html',status=200)
     response.delete_cookie('user_token')
     return response
+
+
 
 @api_view(['POST','GET'])
 @permission_classes([IsAuthenticated])
