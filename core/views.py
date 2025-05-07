@@ -1,4 +1,4 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -11,6 +11,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from datetime import timezone, timedelta, datetime
 from .models import Resume
 from .auth import login_attempts
+from rest_framework.exceptions import AuthenticationFailed
 
 EXPIRE_MINUTE_COOKIES = 5
 EXPIRE_DAY_REMEMBER_ME = 7
@@ -66,13 +67,17 @@ def login(request):
             expires=expire_time+datetime.now(timezone.utc)
         )
     
-        return response
-    
-    if not user_attempt:
-        login_attempts[username] = {'count': 1, 'last_attempt': datetime.now(timezone.utc)}
-    else:
-        login_attempts[username]['count'] += 1
-        login_attempts[username]['last_attemps'] = datetime.now(timezone.utc)
+        if user:
+            token = genetate_jwt(user,EXPIRE_MINUTE_LOGIN)
+            # set cookies
+            expire_time = timedelta(days=EXPIRE_DAY_REMEMBER_ME) if remember_me else timedelta(minutes=EXPIRE_MINUTE_COOKIES)
+            response = Response({'message': 'Login successfull'},status=status.HTTP_200_OK)
+            response.set_cookie(
+                key='user_token',
+                value=token,
+                expires=expire_time+datetime.now(timezone.utc)
+            )
+            response.headers
         
         if login_attempts[username]['count'] >= MAXIMUM_TRY:
             login_attempts[username]['blocked_until'] = datetime.now(timezone.utc) + timedelta(minutes=EXPIRE_MINUTE_BRUTEFORCE)
@@ -90,8 +95,11 @@ def upload_resume(request:Request):
     
     if 'resume' not in request.FILES:
         return Response(status=status.HTTP_400_BAD_REQUEST)
-    
-    resume = Resume.objects.create(
+
+    Resume.objects.create(
+
+
+
         user=request.user,
         file=request.FILES['resume']
     )
@@ -165,3 +173,8 @@ def upload_resume(request: Request):
         file=request.FILES['resume']
     )
     return Response(status=status.HTTP_201_CREATED)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def root_page(request:Request):
+    return render(request,template_name='./root-page.html',status=200)
