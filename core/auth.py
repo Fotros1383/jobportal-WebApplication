@@ -10,11 +10,10 @@ login_attempts = {}
 class JwtAuthentication(authentication.BaseAuthentication):
     
     def authenticate(self, request:HttpRequest):
-        print("meow")
+     
         token = request.COOKIES.get('user_token')
-        print('token is:',token)
+        
         if isinstance(token, bytes):
-            print('we are here')
             token = token.decode()
 
         #if token is None:
@@ -24,7 +23,7 @@ class JwtAuthentication(authentication.BaseAuthentication):
             return None 
         
             # check token
-            #payload = jwt.decode(jwt=token, key=settings.SECRET_KEY, algorithms=['HS256'])
+        #payload = jwt.decode(jwt=token, key=settings.SECRET_KEY, algorithms=['HS256'])
         unverified_payload = jwt.decode(token, options={"verify_signature": False})
         jwt.decode(token, key=settings.SECRET_KEY, algorithms=["HS256"])
 

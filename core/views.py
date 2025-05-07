@@ -22,8 +22,6 @@ EXPIRE_MINUTE_BRUTEFORCE = 5
 def register(request:Request):
     if(request.method=='GET'):
        return render(request,'./register-page new c.html',status=200)
-       return render(request,'./new register.html',status=200)
-      #return render(request,'./register-page.html',status=200)
     serializer = RegisterSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
@@ -35,8 +33,6 @@ def register(request:Request):
 def login(request):
     if(request.method=='GET'):
         return render(request,'./login-page new c.html',status=status.HTTP_200_OK)
-         #return render(request,'./login-page.html',status=status.HTTP_200_OK)
-        #return HttpResponse('you are in login-page page',status=status.HTTP_200_OK)
     username = request.data.get('username')
     password = request.data.get('password')
     remember_me = request.data.get('remember_me', False)
@@ -89,37 +85,63 @@ def upload_resume(request:Request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_resumes(request:Request):
-    if request.user.role != 'EMPLOYER':
+    if request.user.role not in ['EMPLOYER', 'JOB_SEEKER']:
         return Response(status=status.HTTP_403_FORBIDDEN)
-    resumes = Resume.objects.all()
+        
+    if request.user.role == 'EMPLOYER':
+        resumes = Resume.objects.all()
+    else:
+        resumes = Resume.objects.filter(user=request.user)
+        
     data = [
         {
             'user': resume.user.username,
+            'user_name': resume.user.first_name + ' ' + resume.user.last_name,
             'file': resume.file.url,
-            # 'file': request.build_absolute_uri(resume.file.url),
             'uploaded at': resume.uploaded_at
         }
         for resume in resumes
     ]
-    return Response(data=data)
+    return render(request, './resumes-page.html', {
+        'resumes': data,
+        'status': 200
+    })
+
+
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def logout(request):
     response=render(request,template_name='./logout-page.html',status=200)
     response.delete_cookie('user_token')
-        #return Response({'message': 'you are in logout page, sad to see you go'},status=status.HTTP_200_OK)
-    #response = HttpResponseResponse({'message': 'Logout succeessfull'},status=status.HTTP_200_OK)  # can send a message as a json
-    #response.delete_cookie('user_token')
     return response
 
 @api_view(['POST','GET'])
 @permission_classes([IsAuthenticated])
 def profile(request):
+
     if(request.method=='GET'):
         return render(request,'./profile-page.html',status=200)
-        return HttpResponse('you are in profile page',status=status.HTTP_200_OK)
     
     serializer = CurrentUserSerializer(request.user)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def upload_resume(request: Request):
+    if request.user.role != 'JOB_SEEKER':
+        return Response(status=status.HTTP_403_FORBIDDEN)
+        
+    if 'resume' not in request.FILES:
+        return Response(
+            {'error': 'No resume file provided'}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+        
+    Resume.objects.create(
+        user=request.user,
+        file=request.FILES['resume']
+    )
+    return Response(status=status.HTTP_201_CREATED)

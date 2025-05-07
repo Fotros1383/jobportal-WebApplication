@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Resumes</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      .resume-card {
+        transition: transform 0.2s;
+        cursor: pointer;
+      }
+      .resume-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+      .user-info {
+        background: linear-gradient(135deg, #6b73ff 0%, #000dff 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+      }
+    </style>
+  </head>
+  <body class="bg-light">
+    <div class="container py-5">
+      <div class="user-info">
+        <h2>
+          Welcome, {{ request.user.first_name }} {{ request.user.last_name }}
+        </h2>
+        <p class="mb-0">Role: {{ request.user.role }}</p>
+      </div>
+
+      <h3 class="mb-4">
+        {% if user.role == 'EMPLOYER' %}
+        <h2>All Resumes</h2>
+        {% else %}
+        <h2>Your Resumes</h2>
+        {% endif %}
+      </h3>
+      <div class="text-end mb-4">
+        <a href="/api/profile/" class="btn btn-primary">Go to Profile</a>
+      </div>
+      <div class="row g-4">
+        {% for resume in resumes %}
+        <div class="col-12 col-md-6 col-lg-4">
+          <div class="card resume-card h-100">
+            <div class="card-body">
+              <div class="d-flex align-items-center mb-3">
+                <div class="bg-primary rounded-circle p-3 me-3">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    fill="white"
+                    class="bi bi-file-earmark-text"
+                    viewBox="0 0 16 16"
+                  >
+                    <path
+                      d="M5.5 7a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5zM5 9.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5z"
+                    />
+                    <path
+                      d="M9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.5L9.5 0zm0 1v2A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h5 class="card-title mb-0">{{ resume.user_name }}</h5>
+                  <small class="text-muted">@{{ resume.user }}</small>
+                </div>
+              </div>
+              <p class="card-text text-muted">
+                Uploaded: {{ resume.uploaded_at|date:"F d, Y" }}
+              </p>
+              <a
+                href="{{ resume.file }}"
+                class="btn btn-primary w-100"
+                download
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  fill="currentColor"
+                  class="bi bi-download me-2"
+                  viewBox="0 0 16 16"
+                >
+                  <path
+                    d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"
+                  />
+                  <path
+                    d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"
+                  />
+                </svg>
+                Download Resume
+              </a>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>
