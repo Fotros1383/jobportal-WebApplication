@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from django.shortcuts import render
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -20,7 +21,9 @@ EXPIRE_MINUTE_BRUTEFORCE = 5
 @permission_classes([AllowAny]) 
 def register(request:Request):
     if(request.method=='GET'):
-       return render(request,'./register-page.html',status=200)
+       return render(request,'./register-page new c.html',status=200)
+       return render(request,'./new register.html',status=200)
+      #return render(request,'./register-page.html',status=200)
     serializer = RegisterSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
@@ -31,7 +34,8 @@ def register(request:Request):
 @permission_classes([AllowAny]) 
 def login(request):
     if(request.method=='GET'):
-         return render(request,'./login-page.html',status=status.HTTP_200_OK)
+        return render(request,'./login-page new c.html',status=status.HTTP_200_OK)
+         #return render(request,'./login-page.html',status=status.HTTP_200_OK)
         #return HttpResponse('you are in login-page page',status=status.HTTP_200_OK)
     username = request.data.get('username')
     password = request.data.get('password')
@@ -54,6 +58,7 @@ def login(request):
             value=token,
             expires=expire_time+datetime.now(timezone.utc)
         )
+        response.headers
     
         return response
     
@@ -111,7 +116,7 @@ def logout(request):
 @permission_classes([IsAuthenticated])
 def profile(request):
     if(request.method=='GET'):
-        return Response('you are in profile page')
+        return HttpResponse('you are in profile page',status=status.HTTP_200_OK)
     serializer = CurrentUserSerializer(request.user)
     return Response(serializer.data, status=status.HTTP_200_OK)
 

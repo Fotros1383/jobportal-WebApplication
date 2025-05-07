@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JobPortal - Register</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-color: #3498db;
+        --secondary-color: #2980b9;
+        --accent-color: #e74c3c;
+        --text-color: #333;
+        --light-color: #f9f9f9;
+        --dark-color: #2c3e50;
+        --success-color: #2ecc71;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      }
+
+      .container {
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 500px;
+        padding: 0;
+        overflow: hidden;
+      }
+
+      .header {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 25px 20px;
+        text-align: center;
+        position: relative;
+      }
+
+      .header h1 {
+        margin-bottom: 10px;
+        font-size: 28px;
+        font-weight: 600;
+      }
+
+      .header p {
+        opacity: 0.8;
+        font-size: 16px;
+      }
+
+      .form-container {
+        padding: 30px;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+        position: relative;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--text-color);
+        font-weight: 500;
+        font-size: 15px;
+      }
+
+      .form-group input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 16px;
+        transition: all 0.3s;
+      }
+
+      .form-group input:focus {
+        border-color: var(--primary-color);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+      }
+
+      .form-group i {
+        position: absolute;
+        right: 15px;
+        top: 41px;
+        color: #aaa;
+      }
+
+      .role-selector {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+      }
+
+      .role-option {
+        flex: 1;
+        text-align: center;
+        padding: 15px;
+        border: 2px solid #ddd;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin: 0 5px;
+      }
+
+      .role-option:first-child {
+        margin-left: 0;
+      }
+
+      .role-option:last-child {
+        margin-right: 0;
+      }
+
+      .role-option i {
+        font-size: 24px;
+        margin-bottom: 10px;
+        color: #777;
+      }
+
+      .role-option.selected {
+        border-color: var(--primary-color);
+        background-color: rgba(52, 152, 219, 0.1);
+      }
+
+      .role-option.selected i,
+      .role-option.selected h3 {
+        color: var(--primary-color);
+      }
+
+      .role-option h3 {
+        font-size: 16px;
+        font-weight: 500;
+        color: var(--text-color);
+      }
+
+      .btn {
+        width: 100%;
+        padding: 15px;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .btn:hover {
+        background-color: var(--secondary-color);
+      }
+
+      .login-link {
+        text-align: center;
+        margin-top: 25px;
+      }
+
+      .login-link a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 600;
+      }
+
+      .login-link a:hover {
+        text-decoration: underline;
+      }
+
+      .alert {
+        padding: 15px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        display: none;
+      }
+
+      .alert-success {
+        background-color: rgba(46, 204, 113, 0.2);
+        border: 1px solid var(--success-color);
+        color: #27ae60;
+      }
+
+      .alert-danger {
+        background-color: rgba(231, 76, 60, 0.2);
+        border: 1px solid var(--accent-color);
+        color: #c0392b;
+      }
+
+      /* Responsive adjustments */
+      @media (max-width: 600px) {
+        .container {
+          box-shadow: none;
+          border-radius: 0;
+        }
+
+        .role-selector {
+          flex-direction: column;
+        }
+
+        .role-option {
+          margin: 5px 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Create Account</h1>
+        <p>Join our job portal and find your dream career</p>
+      </div>
+
+      <div class="form-container">
+        <div id="alert" class="alert">Registration message appears here</div>
+
+        <form id="registerForm">
+          <div class="role-selector">
+            <div class="role-option" data-role="JOB_SEEKER">
+              <i class="fas fa-user"></i>
+              <h3>Job Seeker</h3>
+            </div>
+            <div class="role-option" data-role="EMPLOYER">
+              <i class="fas fa-building"></i>
+              <h3>Employer</h3>
+            </div>
+          </div>
+
+          <input type="hidden" id="role" name="role" value="JOB_SEEKER" />
+
+          <div class="form-group">
+            <label for="first_name">First Name</label>
+            <input type="text" id="first_name" name="first_name" required />
+            <i class="fas fa-user"></i>
+          </div>
+
+          <div class="form-group">
+            <label for="last_name">Last Name</label>
+            <input type="text" id="last_name" name="last_name" required />
+            <i class="fas fa-user"></i>
+          </div>
+
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required />
+            <i class="fas fa-at"></i>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required />
+            <i class="fas fa-lock"></i>
+          </div>
+
+          <button type="submit" class="btn">Register</button>
+        </form>
+
+        <div class="login-link">
+          Already have an account? <a href="/api/login/">Log In</a>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Select role functionality
+      document.querySelectorAll(".role-option").forEach((option) => {
+        option.addEventListener("click", function () {
+          // Remove selected class from all options
+          document.querySelectorAll(".role-option").forEach((opt) => {
+            opt.classList.remove("selected");
+          });
+
+          // Add selected class to clicked option
+          this.classList.add("selected");
+
+          // Update hidden role input
+          document.getElementById("role").value = this.dataset.role;
+        });
+      });
+
+      // Set default selected role
+      document
+        .querySelector('.role-option[data-role="JOB_SEEKER"]')
+        .classList.add("selected");
+
+      // Form submission
+      document
+        .getElementById("registerForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          const formData = {
+            first_name: document.getElementById("first_name").value,
+            last_name: document.getElementById("last_name").value,
+            username: document.getElementById("username").value,
+            password: document.getElementById("password").value,
+            role: document.getElementById("role").value,
+          };
+
+          fetch("/api/register/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCookie("csrftoken"),
+            },
+            body: JSON.stringify(formData),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              const alert = document.getElementById("alert");
+
+              if (data.message) {
+                // Success
+                alert.className = "alert alert-success";
+                alert.style.display = "block";
+                alert.textContent = data.message;
+
+                // Clear form
+                document.getElementById("registerForm").reset();
+
+                // Redirect to login after 2 seconds
+                setTimeout(() => {
+                  window.location.href = "/api/login/";
+                }, 2000);
+              } else if (data.error) {
+                // Error
+                alert.className = "alert alert-danger";
+                alert.style.display = "block";
+                alert.textContent = data.error;
+              } else {
+                // Handle validation errors
+                const errors = Object.values(data).flat();
+                alert.className = "alert alert-danger";
+                alert.style.display = "block";
+                alert.textContent = errors.join(" ");
+              }
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+              const alert = document.getElementById("alert");
+              alert.className = "alert alert-danger";
+              alert.style.display = "block";
+              alert.textContent = "An error occurred. Please try again.";
+            });
+        });
+
+      // Function to get CSRF token from cookies
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+          const cookies = document.cookie.split(";");
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === name + "=") {
+              cookieValue = decodeURIComponent(
+                cookie.substring(name.length + 1)
+              );
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
+    </script>
+  </body>
+</html>
