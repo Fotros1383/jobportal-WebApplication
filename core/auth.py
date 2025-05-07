@@ -5,6 +5,7 @@ from .models import SiteUser
 from django.http import HttpResponseRedirect
 import jwt 
 from rest_framework.request import HttpRequest
+from rest_framework.exceptions  import AuthenticationFailed
 login_attempts = {}
 
 class JwtAuthentication(authentication.BaseAuthentication):
@@ -24,24 +25,23 @@ class JwtAuthentication(authentication.BaseAuthentication):
         
             # check token
         #payload = jwt.decode(jwt=token, key=settings.SECRET_KEY, algorithms=['HS256'])
-        unverified_payload = jwt.decode(token, options={"verify_signature": False})
-        jwt.decode(token, key=settings.SECRET_KEY, algorithms=["HS256"])
+        try:
+            unverified_payload = jwt.decode(token, options={"verify_signature": False})
+            jwt.decode(token, key=settings.SECRET_KEY, algorithms=["HS256"])
+        except jwt.ExpiredSignatureError:
+            request.token_expired = True
+            return None
 
-        
         exp_timestamp = unverified_payload.get("exp")
-        if not exp_timestamp:
-            return HttpResponseRedirect('login/')
-        else:
-            print('exp_timestamp')
-           
-        if datetime.utcnow().timestamp() > exp_timestamp:
-            return HttpResponseRedirect('login/')  # expired token
+        if not exp_timestamp or datetime.utcnow().timestamp() > exp_timestamp:
+            request.token_expired = True
+            return None
         
-
+        
         try:    # check user exist
              user = SiteUser.objects.get(id=unverified_payload['user_id'])
         except SiteUser.DoesNotExist:
             print("SiteUser.DoesNotExist")
-            raise exceptions.AuthenticationFailed('User not found')
+            return None
 
         return (user, None)

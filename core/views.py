@@ -1,4 +1,4 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -11,6 +11,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from datetime import timezone, timedelta, datetime
 from .models import Resume
 from .auth import login_attempts
+from rest_framework.exceptions import AuthenticationFailed
 
 EXPIRE_MINUTE_LOGIN = 10
 EXPIRE_MINUTE_COOKIES = 5
@@ -31,43 +32,46 @@ def register(request:Request):
 @api_view(['POST','GET'])
 @permission_classes([AllowAny]) 
 def login(request):
-    if(request.method=='GET'):
-        return render(request,'./login-page new c.html',status=status.HTTP_200_OK)
-    username = request.data.get('username')
-    password = request.data.get('password')
-    remember_me = request.data.get('remember_me', False)
-    user_attempt = login_attempts.get(username)
+    try:
+        if(request.method=='GET'):
+           return render(request,'./login-page new c.html',status=status.HTTP_200_OK)
+        username = request.data.get('username')
+        password = request.data.get('password')
+        remember_me = request.data.get('remember_me', False)
+        user_attempt = login_attempts.get(username)
 
-    if user_attempt and 'blocked_until' in login_attempts:
-        if datetime.now(timezone.utc) < user_attempt['blocked_until']:
-            return Response({'error':'Too many request to login. Try again later'}, status=status.HTTP_429_TOO_MANY_REQUESTS)
+        if user_attempt and 'blocked_until' in login_attempts:
+            if datetime.now(timezone.utc) < user_attempt['blocked_until']:
+                return Response({'error':'Too many request to login. Try again later'}, status=status.HTTP_429_TOO_MANY_REQUESTS)
 
-    user = authenticate(username=username, password=password)
+        user = authenticate(username=username, password=password)
     
-    if user:
-        token = genetate_jwt(user,EXPIRE_MINUTE_LOGIN)
-        # set cookies
-        expire_time = timedelta(days=EXPIRE_DAY_REMEMBER_ME) if remember_me else timedelta(minutes=EXPIRE_MINUTE_COOKIES)
-        response = Response({'message': 'Login successfull'},status=status.HTTP_200_OK)
-        response.set_cookie(
-            key='user_token',
-            value=token,
-            expires=expire_time+datetime.now(timezone.utc)
-        )
-        response.headers
-    
-        return response
-    
-    if not user_attempt:
-        login_attempts[username] = {'count': 1, 'last_attempt': datetime.now(timezone.utc)}
-    else:
-        login_attempts[username]['count'] += 1
-        login_attempts[username]['last_attemps'] = datetime.now(timezone.utc)
+        if user:
+            token = genetate_jwt(user,EXPIRE_MINUTE_LOGIN)
+            # set cookies
+            expire_time = timedelta(days=EXPIRE_DAY_REMEMBER_ME) if remember_me else timedelta(minutes=EXPIRE_MINUTE_COOKIES)
+            response = Response({'message': 'Login successfull'},status=status.HTTP_200_OK)
+            response.set_cookie(
+                key='user_token',
+                value=token,
+                expires=expire_time+datetime.now(timezone.utc)
+            )
+            response.headers
         
-        if login_attempts[username]['count'] >= 5:
-            login_attempts[username]['blocked_until'] = datetime.now(timezone.utc) + timedelta(minute=EXPIRE_MINUTE_BRUTEFORCE)
-    
-    return Response({'error':'Invalid username or password'},status=status.HTTP_401_UNAUTHORIZED)
+            return response
+        
+        if not user_attempt:
+            login_attempts[username] = {'count': 1, 'last_attempt': datetime.now(timezone.utc)}
+        else:
+            login_attempts[username]['count'] += 1
+            login_attempts[username]['last_attemps'] = datetime.now(timezone.utc)
+            
+            if login_attempts[username]['count'] >= 5:
+                login_attempts[username]['blocked_until'] = datetime.now(timezone.utc) + timedelta(minute=EXPIRE_MINUTE_BRUTEFORCE)
+        
+        return Response({'error':'Invalid username or password'},status=status.HTTP_401_UNAUTHORIZED)
+    except AuthenticationFailed:
+            return HttpResponseRedirect('api/login/').delete_cookie('user_token')
     
 @api_view(['POST','GET'])
 @permission_classes([IsAuthenticated])
@@ -76,7 +80,7 @@ def upload_resume(request:Request):
         return Response(status=status.HTTP_403_FORBIDDEN)
     if 'resume' not in request.FILES:
         return Response(status=status.HTTP_400_BAD_REQUEST)
-    resume = Resume.objects.create(
+    Resume.objects.create(
         user=request.user,
         file=request.FILES['resume']
     )
@@ -145,3 +149,8 @@ def upload_resume(request: Request):
         file=request.FILES['resume']
     )
     return Response(status=status.HTTP_201_CREATED)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def root_page(request:Request):
+    return render(request,template_name='./root-page.html',status=200)
