@@ -5,6 +5,7 @@ from .models import SiteUser
 from django.http import HttpResponseRedirect
 import jwt 
 
+login_attempts = {}
 
 class JwtAuthentication(authentication.BaseAuthentication):
     

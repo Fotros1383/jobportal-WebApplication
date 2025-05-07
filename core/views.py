@@ -1,54 +1,73 @@
 from django.shortcuts import render
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
+from rest_framework.request import Request
 from rest_framework import status
 from .serializers import RegisterSerializer,CurrentUserSerializer
 from django.contrib.auth import authenticate
 from .utils import genetate_jwt
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from datetime import timezone, timedelta, datetime
-from rest_framework.permissions import AllowAny
-from django.http import HttpRequest,HttpResponse
-from django.shortcuts import render
+from .models import Resume
+from .auth import login_attempts
+
 EXPIRE_MINUTE_LOGIN = 10
 EXPIRE_MINUTE_COOKIES = 5
+EXPIRE_DAY_REMEMBER_ME = 7
+EXPIRE_MINUTE_BRUTEFORCE = 5
 
 @api_view(['POST','GET'])
 @permission_classes([AllowAny]) 
-def register(request:HttpRequest):
+def register(request:Request):
     if(request.method=='GET'):
        return render(request,'./register-page.html',status=200)
     serializer = RegisterSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
-        return Response(status=status.HTTP_201_CREATED)   # can send a message as a json
+        return Response({'message':'You registered successfully!'},status=status.HTTP_201_CREATED)   # can send a message as a json
     return Response(serializer.errors, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['POST','GET'])
 @permission_classes([AllowAny]) 
 def login(request):
     if(request.method=='GET'):
-         return render(request,'./login-page.html',status=200)
+         return render(request,'./login-page.html',status=status.HTTP_200_OK)
         #return HttpResponse('you are in login-page page',status=status.HTTP_200_OK)
     username = request.data.get('username')
     password = request.data.get('password')
+    remember_me = request.data.get('remember_me', False)
+    user_attempt = login_attempts.get(username)
+
+    if user_attempt and 'blocked_until' in login_attempts:
+        if datetime.now(timezone.utc) < user_attempt['blocked_until']:
+            return Response({'error':'Too many request to login. Try again later'}, status=status.HTTP_429_TOO_MANY_REQUESTS)
 
     user = authenticate(username=username, password=password)
+    
     if user:
         token = genetate_jwt(user,EXPIRE_MINUTE_LOGIN)
         # set cookies
-        expire_time = datetime.now(timezone.utc) + timedelta(minutes=EXPIRE_MINUTE_COOKIES)   
-        response = Response(status=status.HTTP_200_OK)
+        expire_time = timedelta(days=EXPIRE_DAY_REMEMBER_ME) if remember_me else timedelta(minutes=EXPIRE_MINUTE_COOKIES)
+        response = Response({'message': 'Login successfull'},status=status.HTTP_200_OK)
         response.set_cookie(
             key='user_token',
             value=token,
-            expires=expire_time
+            expires=expire_time+datetime.now(timezone.utc)
         )
-        
-        return response  # can send a message for fronend
+    
+        return response
+    
+    if not user_attempt:
+        login_attempts[username] = {'count': 1, 'last_attempt': datetime.now(timezone.utc)}
     else:
-        return Response(status=status.HTTP_401_UNAUTHORIZED)
-
+        login_attempts[username]['count'] += 1
+        login_attempts[username]['last_attemps'] = datetime.now(timezone.utc)
+        
+        if login_attempts[username]['count'] >= 5:
+            login_attempts[username]['blocked_until'] = datetime.now(timezone.utc) + timedelta(minute=EXPIRE_MINUTE_BRUTEFORCE)
+    
+    return Response({'error':'Invalid username or password'},status=status.HTTP_401_UNAUTHORIZED)
+    
 @api_view(['POST','GET'])
 @permission_classes([IsAuthenticated])
 def upload_resume(request:Request):
@@ -83,8 +102,8 @@ def list_resumes(request:Request):
 @permission_classes([IsAuthenticated])
 def logout(request):
     if(request.method=='GET'):
-        return HttpResponse('you are in logout page, sad to see you go',status=status.HTTP_200_OK)
-    response = Response(status=status.HTTP_200_OK)  # can send a message as a json
+        return Response({'message': 'you are in logout page, sad to see you go'},status=status.HTTP_200_OK)
+    response = Response({'message': 'Logout succeessfull'},status=status.HTTP_200_OK)  # can send a message as a json
     response.delete_cookie('user_token')
     return response
 
@@ -92,7 +111,7 @@ def logout(request):
 @permission_classes([IsAuthenticated])
 def profile(request):
     if(request.method=='GET'):
-        return HttpResponse('you are in profile page')
+        return Response('you are in profile page')
     serializer = CurrentUserSerializer(request.user)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
