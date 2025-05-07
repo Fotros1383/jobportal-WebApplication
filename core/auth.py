@@ -14,17 +14,13 @@ class JwtAuthentication(authentication.BaseAuthentication):
      
         token = request.COOKIES.get('user_token')
         
+        if not token:
+            request.token_expired = True
+            return None 
         if isinstance(token, bytes):
             token = token.decode()
-
-        #if token is None:
-         #   raise exceptions.AuthenticationFailed('No token provided')
-        auth_header = request.headers.get('Authorization')
-        if not token:
-            return None 
-        
-            # check token
-        #payload = jwt.decode(jwt=token, key=settings.SECRET_KEY, algorithms=['HS256'])
+     
+          
         try:
             unverified_payload = jwt.decode(token, options={"verify_signature": False})
             jwt.decode(token, key=settings.SECRET_KEY, algorithms=["HS256"])

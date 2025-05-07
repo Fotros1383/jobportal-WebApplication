@@ -22,7 +22,7 @@ EXPIRE_MINUTE_BRUTEFORCE = 5
 @permission_classes([AllowAny]) 
 def register(request:Request):
     if(request.method=='GET'):
-       return render(request,'./register-page new c.html',status=200)
+       return render(request,'./register-page.html',status=200)
     serializer = RegisterSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
@@ -32,9 +32,9 @@ def register(request:Request):
 @api_view(['POST','GET'])
 @permission_classes([AllowAny]) 
 def login(request):
-    try:
+    
         if(request.method=='GET'):
-           return render(request,'./login-page new c.html',status=status.HTTP_200_OK)
+           return render(request,'./login-page.html',status=status.HTTP_200_OK)
         username = request.data.get('username')
         password = request.data.get('password')
         remember_me = request.data.get('remember_me', False)
@@ -70,9 +70,7 @@ def login(request):
                 login_attempts[username]['blocked_until'] = datetime.now(timezone.utc) + timedelta(minute=EXPIRE_MINUTE_BRUTEFORCE)
         
         return Response({'error':'Invalid username or password'},status=status.HTTP_401_UNAUTHORIZED)
-    except AuthenticationFailed:
-            return HttpResponseRedirect('api/login/').delete_cookie('user_token')
-    
+        
 @api_view(['POST','GET'])
 @permission_classes([IsAuthenticated])
 def upload_resume(request:Request):
@@ -102,7 +100,7 @@ def list_resumes(request:Request):
             'user': resume.user.username,
             'user_name': resume.user.first_name + ' ' + resume.user.last_name,
             'file': resume.file.url,
-            'uploaded at': resume.uploaded_at
+            'uploaded_at': resume.uploaded_at
         }
         for resume in resumes
     ]
