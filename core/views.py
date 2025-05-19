@@ -13,16 +13,17 @@ from .models import Resume
 from .auth import login_attempts
 from rest_framework.exceptions import AuthenticationFailed
 
-EXPIRE_MINUTE_LOGIN = 10
+
 EXPIRE_MINUTE_COOKIES = 5
 EXPIRE_DAY_REMEMBER_ME = 7
 EXPIRE_MINUTE_BRUTEFORCE = 5
+MAXIMUM_TRY = 5
 
 @api_view(['POST','GET'])
 @permission_classes([AllowAny]) 
 def register(request:Request):
     if(request.method=='GET'):
-       return render(request,'./register-page new c.html',status=200)
+       return render(request,'./register-page new c.html',status=status.HTTP_200_OK)
     serializer = RegisterSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
@@ -40,14 +41,17 @@ def login(request):
         remember_me = request.data.get('remember_me', False)
         user_attempt = login_attempts.get(username)
 
-        if user_attempt and 'blocked_until' in login_attempts:
+        if user_attempt and 'blocked_until' in login_attempts[username]:
             if datetime.now(timezone.utc) < user_attempt['blocked_until']:
-                return Response({'error':'Too many request to login. Try again later'}, status=status.HTTP_429_TOO_MANY_REQUESTS)
-
+                 return Response({'error':'Too many Try to login. Try again later'}, status=status.HTTP_429_TOO_MANY_REQUESTS)
+            
         user = authenticate(username=username, password=password)
     
         if user:
-            token = genetate_jwt(user,EXPIRE_MINUTE_LOGIN)
+            if username in login_attempts:
+                del login_attempts[username]
+        
+            token = genetate_jwt(user,EXPIRE_MINUTE_COOKIES)
             # set cookies
             expire_time = timedelta(days=EXPIRE_DAY_REMEMBER_ME) if remember_me else timedelta(minutes=EXPIRE_MINUTE_COOKIES)
             response = Response({'message': 'Login successfull'},status=status.HTTP_200_OK)
@@ -56,7 +60,7 @@ def login(request):
                 value=token,
                 expires=expire_time+datetime.now(timezone.utc)
             )
-            response.headers
+           
         
             return response
         
@@ -66,9 +70,8 @@ def login(request):
             login_attempts[username]['count'] += 1
             login_attempts[username]['last_attemps'] = datetime.now(timezone.utc)
             
-            if login_attempts[username]['count'] >= 5:
-                login_attempts[username]['blocked_until'] = datetime.now(timezone.utc) + timedelta(minute=EXPIRE_MINUTE_BRUTEFORCE)
-        
+            if login_attempts[username]['count'] >= MAXIMUM_TRY:
+                login_attempts[username]['blocked_until'] = datetime.now(timezone.utc) + timedelta(minutes=EXPIRE_MINUTE_BRUTEFORCE)        
         return Response({'error':'Invalid username or password'},status=status.HTTP_401_UNAUTHORIZED)
     except AuthenticationFailed:
             return HttpResponseRedirect('api/login/').delete_cookie('user_token')
@@ -102,7 +105,7 @@ def list_resumes(request:Request):
             'user': resume.user.username,
             'user_name': resume.user.first_name + ' ' + resume.user.last_name,
             'file': resume.file.url,
-            'uploaded at': resume.uploaded_at
+            'uploaded_at': resume.uploaded_at
         }
         for resume in resumes
     ]

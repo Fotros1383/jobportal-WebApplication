@@ -12,7 +12,7 @@
       :root {
         --primary-color: #3498db;
         --secondary-color: #2980b9;
-        --accent-color: #e74c3c;
+        --accent-color: #e73c53;
         --text-color: #333;
         --light-color: #f9f9f9;
         --light-gray: #eee;
@@ -363,12 +363,15 @@
 
       <!-- JOB SEEKER VIEW: Will be shown only for job seekers -->
       <div id="jobseeker-view" style="display: none">
+              <a href="/api/resumes/" class="btn btn-lg">
+            <i class="fas fa-search"></i> View Your Resumes
+          </a>
         <div class="action-card">
           <h3 class="card-title">
             <i class="fas fa-cloud-upload-alt"></i>
             Upload Your Resume
           </h3>
-
+        </br>
           <div id="alert" class="alert">Upload status message</div>
 
           <div id="drop-area" class="upload-container">
