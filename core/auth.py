@@ -17,14 +17,10 @@ class JwtAuthentication(authentication.BaseAuthentication):
         if isinstance(token, bytes):
             token = token.decode()
 
-        #if token is None:
-         #   raise exceptions.AuthenticationFailed('No token provided')
-        auth_header = request.headers.get('Authorization')
         if not token:
+            request.token_expired = True
             return None 
         
-            # check token
-        #payload = jwt.decode(jwt=token, key=settings.SECRET_KEY, algorithms=['HS256'])
         try:
             unverified_payload = jwt.decode(token, options={"verify_signature": False})
             jwt.decode(token, key=settings.SECRET_KEY, algorithms=["HS256"])
